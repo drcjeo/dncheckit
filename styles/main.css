@@ -1,0 +1,102 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    margin: 0;
+    padding: 16px;
+    background: var(--tg-theme-bg-color, #fff);
+    color: var(--tg-theme-text-color, #000);
+}
+
+.demo-banner {
+    background: #ff6b6b;
+    color: white;
+    text-align: center;
+    padding: 8px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+}
+
+.search-container {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+#domain-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid var(--tg-theme-hint-color, #999);
+    border-radius: 8px;
+    background: var(--tg-theme-bg-color, #fff);
+    color: var(--tg-theme-text-color, #000);
+}
+
+#search-button {
+    padding: 8px 16px;
+    background: var(--tg-theme-button-color, #2481cc);
+    color: var(--tg-theme-button-text-color, #fff);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.search-result {
+    border: 1px solid var(--tg-theme-hint-color, #999);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 8px;
+}
+
+.loading-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid var(--tg-theme-button-color, #2481cc);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+    display: inline-block;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.domain-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.platform-badge {
+    background: #e0e0e0;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+}
+
+.status-container {
+    display: flex;
+    align-items: center;
+    margin: 8px 0;
+}
+
+.status.success { 
+    color: #4caf50; 
+}
+
+.status.error { 
+    color: #f44336; 
+}
+
+.price-info {
+    margin-top: 8px;
+    font-weight: bold;
+}
+
+.discount-code {
+    color: #2196f3;
+    font-size: 0.9em;
+    margin-left: 8px;
+}

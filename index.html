@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DNcheckit</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            padding: 16px;
+            background: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #000);
+        }
+        .demo-notice {
+            background: #ff6b6b;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .search-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        #domain-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        #search-button {
+            padding: 8px 16px;
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #fff);
+            border: none;
+            border-radius: 8px;
+        }
+        .result {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        .provider {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 4px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="demo-notice">
+        ⚠️ DEMO MODE - Pending API Integration with Freename.io
+    </div>
+    <div class="search-container">
+        <input type="text" id="domain-input" placeholder="Enter domain name">
+        <button id="search-button">Check</button>
+    </div>
+    <div id="results-container"></div>
+    <script>
+        let tg = window.Telegram.WebApp;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            tg.ready();
+            tg.expand();
+
+            const domainInput = document.getElementById('domain-input');
+            const searchButton = document.getElementById('search-button');
+            const resultsContainer = document.getElementById('results-container');
+
+            function showResult(domain, isAvailable, price, provider) {
+                const result = document.createElement('div');
+                result.className = 'result';
+                
+                const status = isAvailable ? 
+                    `<div class="success">✅ Available</div>` : 
+                    `<div class="error">❌ Not available</div>`;
+                
+                let priceText = '';
+                if (isAvailable && price) {
+                    priceText = `<div>Price: $${price}</div>`;
+                    if (domain.endsWith('.miniapp')) {
+                        priceText += `<div>🏷️ Discount code: MAX45</div>`;
+                    }
+                }
+
+                result.innerHTML = `
+                    <div><strong>${domain}</strong></div>
+                    ${status}
+                    ${priceText}
+                    <div class="provider">Provider: ${provider}</div>
+                `;
+
+                resultsContainer.insertBefore(result, resultsContainer.firstChild);
+            }
+
+            async function checkDomain() {
+                const domain = domainInput.value.trim().toLowerCase();
+                if (!domain) return;
+
+                // Show checking message
+                const result = document.createElement('div');
+                result.className = 'result';
+                result.innerHTML = `
+                    <div><strong>${domain}</strong></div>
+                    <div>⌛ Checking availability...</div>
+                    <div class="provider">Demo Mode - API Integration Pending</div>
+                `;
+                resultsContainer.insertBefore(result, resultsContainer.firstChild);
+
+                // Simulate API check
+                setTimeout(() => {
+                    const isAvailable = Math.random() > 0.3;
+                    let price = 42;
+                    let provider = 'Freename.io';
+
+                    if (domain.endsWith('.miniapp')) {
+                        price = 42;
+                        provider = 'Freename.io';
+                    } else if (domain.endsWith('.crypto')) {
+                        price = 88;
+                        provider = 'Unstoppable Domains';
+                    } else if (domain.endsWith('.rwa')) {
+                        price = 150;
+                        provider = 'Freename.io';
+                    } else if (domain.endsWith('.hns')) {
+                        price = 65;
+                        provider = 'Handshake';
+                    }
+
+                    // Remove checking message
+                    result.remove();
+                    // Show final result
+                    showResult(domain, isAvailable, price, provider);
+                }, 1500);
+            }
+
+            searchButton.addEventListener('click', checkDomain);
+            domainInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkDomain();
+            });
+        });
+    </script>
+</body>
+</html>

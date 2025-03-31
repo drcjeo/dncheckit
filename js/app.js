@@ -1,196 +1,299 @@
-// Required dependencies
-const TelegramBot = require('node-telegram-bot-api');
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
-
-// Initialize Express app
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// Constants
-const CREATOR_USERNAME = '@John';
-const DEFAULT_PRICES = {
-    miniapp: 42,
-    crypto: 88,
-    rwa: 150,
-    hns: 65
-};
-
-// Initialize bot
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
-
-// Web app URL
-const webAppUrl = process.env.WEBAPP_URL || 'https://dncheckit.miniapp';
-
-// Bot commands configuration
-const commands = [
-    { command: 'start', description: 'Start DNcheckit' },
-    { command: 'check', description: 'Check domain availability' },
-    { command: 'help', description: 'Show help information' },
-    { command: 'pricing', description: 'Show TLD pricing' }
-];
-
-// Set bot commands
-async function setupBot() {
-    try {
-        await bot.setMyCommands(commands);
-        console.log('Bot commands set successfully');
-    } catch (error) {
-        console.error('Error setting bot commands:', error);
-    }
+:root {
+    --tg-theme-bg-color: #ffffff;
+    --tg-theme-text-color: #000000;
+    --tg-theme-hint-color: #999999;
+    --tg-theme-link-color: #2481cc;
+    --tg-theme-button-color: #2481cc;
+    --tg-theme-button-text-color: #ffffff;
+    --success-color: #28a745;
+    --error-color: #dc3545;
+    --warning-color: #ffc107;
+    --gradient-start: #2193b0;
+    --gradient-end: #6dd5ed;
 }
 
-setupBot();
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-// Command handlers
-const commandHandlers = {
-    async start(chatId, msg) {
-        const keyboard = {
-            reply_markup: {
-                keyboard: [[{
-                    text: '🔍 Check Domain',
-                    web_app: { url: webAppUrl }
-                }]],
-                resize_keyboard: true
-            }
-        };
+body {
+    background-color: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 16px;
+    font-size: 16px;
+    line-height: 1.5;
+    min-height: 100vh;
+}
 
-        const welcomeMessage = `Welcome to DNcheckit! 🌐
+.page-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
 
-I help you check domain availability across:
-• Freename.io - For .miniapp and .rwa domains
-• Unstoppable Domains - For .crypto domains
-• Handshake - For .hns domains
+.container {
+    max-width: 600px;
+    margin: 0 auto;
+    background: var(--tg-theme-bg-color);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
 
-🔥 Special: Use code MAX45 for .miniapp domains!
+.title-section {
+    text-align: center;
+    margin-bottom: 30px;
+}
 
-Press the button below or type /check to start.`;
+.main-title {
+    font-size: 2.5em;
+    background: linear-gradient(45deg, var(--gradient-start), var(--gradient-end));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin: 0 0 15px 0;
+    padding: 0;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
 
-        await bot.sendMessage(chatId, welcomeMessage, keyboard);
-    },
+.caution-banner {
+    background: linear-gradient(45deg, #ff9966, #ff5e62);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.9em;
+    display: inline-block;
+    animation: pulse 2s infinite;
+    box-shadow: 0 4px 15px rgba(255, 94, 98, 0.2);
+}
 
-    async check(chatId) {
-        const inlineKeyboard = {
-            reply_markup: {
-                inline_keyboard: [[{
-                    text: '🔍 Open Domain Checker',
-                    web_app: { url: webAppUrl }
-                }]]
-            }
-        };
+.vizzy-container {
+    text-align: center;
+    margin: 30px 0;
+    position: relative;
+}
 
-        await bot.sendMessage(
-            chatId, 
-            'Click below to check domain availability:',
-            inlineKeyboard
-        );
-    },
+.vizzy-character {
+    display: inline-block;
+    position: relative;
+}
 
-    async help(chatId) {
-        const helpMessage = `DNcheckit Help Guide 📚
+.vizzy-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 40px;
+    border: 3px solid var(--tg-theme-button-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
 
-Commands:
-/start - Start DNcheckit
-/check - Check domain availability
-/pricing - Show TLD pricing
-/help - Show this help
+.vizzy-speech-bubble {
+    position: absolute;
+    background: var(--tg-theme-bg-color);
+    border: 2px solid var(--tg-theme-button-color);
+    border-radius: 20px;
+    padding: 12px 20px;
+    max-width: 250px;
+    top: -70px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
 
-Features:
-• Multi-platform domain checking
-• .miniapp TLD support with MAX45 discount
-• Real-time availability checks
+.vizzy-speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
+    border-top: 10px solid var(--tg-theme-button-color);
+}
 
-Status: Demo Mode (API Integration Pending)
-Created by: ${CREATOR_USERNAME}`;
+.search-box {
+    display: flex;
+    gap: 12px;
+    margin: 30px 0;
+}
 
-        await bot.sendMessage(chatId, helpMessage);
-    },
+.search-box input {
+    flex: 1;
+    padding: 15px;
+    border: 2px solid var(--tg-theme-hint-color);
+    border-radius: 12px;
+    font-size: 16px;
+    background: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    transition: all 0.3s;
+}
 
-    async pricing(chatId) {
-        const pricingMessage = `Domain Pricing Guide 💰
+.search-box input:focus {
+    outline: none;
+    border-color: var(--tg-theme-button-color);
+    box-shadow: 0 0 0 3px rgba(36,129,204,0.1);
+}
 
-.miniapp domains: $${DEFAULT_PRICES.miniapp} 
-  → Use code MAX45 for 45% off!
-.crypto domains: $${DEFAULT_PRICES.crypto}
-.rwa domains: $${DEFAULT_PRICES.rwa}
-.hns domains: $${DEFAULT_PRICES.hns}
+.search-box button {
+    padding: 15px 30px;
+    background: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-Note: Demo prices shown. Actual prices may vary.`;
+.search-box button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(36,129,204,0.3);
+}
 
-        await bot.sendMessage(chatId, pricingMessage);
+.search-box button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.platform-box {
+    background: var(--tg-theme-bg-color);
+    border: 1px solid var(--tg-theme-hint-color);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    transition: all 0.3s;
+}
+
+.platform-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+.platform-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.platform-badge {
+    background: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.status-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.status-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--tg-theme-text-color);
+}
+
+.result {
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s;
+}
+
+.result.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.result.available {
+    background: rgba(40, 167, 69, 0.1);
+    color: var(--success-color);
+}
+
+.result.unavailable {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--error-color);
+}
+
+.result.error {
+    background: rgba(255, 193, 7, 0.1);
+    color: var(--warning-color);
+}
+
+.premium-tag {
+    display: inline-block;
+    background: linear-gradient(45deg, #FFD700, #FFA500);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+.discount-code {
+    display: inline-block;
+    background: linear-gradient(45deg, #00C853, #64DD17);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+.spinner {
+    display: inline-block;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.hidden {
+    display: none !important;
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 20px;
     }
-};
-
-// Command listeners
-Object.keys(commandHandlers).forEach(command => {
-    bot.onText(new RegExp(`\\/${command}`), async (msg) => {
-        try {
-            await commandHandlers[command](msg.chat.id, msg);
-        } catch (error) {
-            console.error(`Error handling /${command}:`, error);
-            bot.sendMessage(
-                msg.chat.id,
-                '⚠️ Sorry, something went wrong. Please try again later.'
-            );
-        }
-    });
-});
-
-// Web app data handler
-bot.on('web_app_data', async (msg) => {
-    try {
-        const chatId = msg.chat.id;
-        const data = JSON.parse(msg.web_app_data.data);
-        
-        if (data.domain) {
-            await bot.sendMessage(
-                chatId,
-                `🔍 Checking availability for: ${data.domain}\n⌛ Please wait...`
-            );
-
-            // Demo response (will be replaced with actual API integration)
-            setTimeout(async () => {
-                const isAvailable = Math.random() > 0.3;
-                const tld = data.domain.split('.').pop();
-                const price = DEFAULT_PRICES[tld] || 42;
-
-                const resultMessage = isAvailable ?
-                    `✅ ${data.domain} is available!\n💰 Price: $${price}` +
-                    (tld === 'miniapp' ? '\n🏷️ Use code MAX45 for 45% off!' : '') :
-                    `❌ Sorry, ${data.domain} is not available.`;
-
-                await bot.sendMessage(chatId, resultMessage);
-            }, 1500);
-        }
-    } catch (error) {
-        console.error('Error handling web_app_data:', error);
-        bot.sendMessage(
-            msg.chat.id,
-            '⚠️ Error processing domain check. Please try again.'
-        );
+    
+    .search-box {
+        flex-direction: column;
     }
-});
-
-// Error handling
-bot.on('polling_error', (error) => {
-    console.error('Polling error:', error);
-});
-
-// Express server setup
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`DNcheckit server running on port ${PORT}`);
-});
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'OK', mode: 'Demo - API Pending' });
-});
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-    bot.stopPolling();
-    process.exit(0);
-});
+    
+    .search-box button {
+        width: 100%;
+    }
+    
+    .vizzy-speech-bubble {
+        max-width: 200px;
+        font-size: 14px;
+    }
+}

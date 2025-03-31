@@ -3,148 +3,399 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DNcheckit</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>DNcheckit - Domain Availability Checker</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-text-color: #000000;
+            --tg-theme-hint-color: #999999;
+            --tg-theme-link-color: #2481cc;
+            --tg-theme-button-color: #2481cc;
+            --tg-theme-button-text-color: #ffffff;
+            --success-color: #28a745;
+            --error-color: #dc3545;
+            --warning-color: #ffc107;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, system-ui, sans-serif;
+            background-color: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
             padding: 16px;
-            background: var(--tg-theme-bg-color, #fff);
-            color: var(--tg-theme-text-color, #000);
         }
-        .demo-notice {
-            background: #ff6b6b;
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .title {
             text-align: center;
+            margin-bottom: 20px;
+            color: var(--tg-theme-button-color);
         }
-        .search-container {
+
+        .demo-badge {
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .search-box {
             display: flex;
             gap: 8px;
-            margin-bottom: 16px;
+            margin: 20px 0;
         }
-        #domain-input {
+
+        input {
             flex: 1;
-            padding: 8px;
-            border: 1px solid #ccc;
+            padding: 12px;
+            border: 1px solid var(--tg-theme-hint-color);
             border-radius: 8px;
+            font-size: 16px;
+            background: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
         }
-        #search-button {
-            padding: 8px 16px;
-            background: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, #fff);
+
+        button {
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
             border: none;
             border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
         }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
+        .platform-box {
+            background: var(--tg-theme-bg-color);
+            border: 1px solid var(--tg-theme-hint-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .platform-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .platform-badge {
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
         .result {
             padding: 12px;
-            border: 1px solid #ccc;
             border-radius: 8px;
-            margin-bottom: 8px;
+            margin-top: 8px;
+            display: none;
+            font-size: 14px;
+            line-height: 1.5;
         }
-        .provider {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 4px;
+
+        .result.show {
+            display: block;
         }
-        .success { color: green; }
-        .error { color: red; }
+
+        .result.available {
+            background: rgba(40, 167, 69, 0.1);
+            color: var(--success-color);
+        }
+
+        .result.unavailable {
+            background: rgba(220, 53, 69, 0.1);
+            color: var(--error-color);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .status-text {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color);
+        }
     </style>
 </head>
 <body>
-    <div class="demo-notice">
-        ⚠️ DEMO MODE - Pending API Integration with Freename.io
+    <div class="container">
+        <h1 class="title">DNcheckit<span class="demo-badge">DEMO</span></h1>
+        <div class="search-box">
+            <input type="text" id="domain-input" placeholder="Enter domain (e.g., 'x' or 'name.x')">
+            <button id="check-button">
+                <span class="button-text">Check</span>
+                <span class="spinner hidden">⌛</span>
+            </button>
+        </div>
+
+        <div class="results-container">
+            <div class="platform-box freename">
+                <div class="platform-header">
+                    <h3>Freename</h3>
+                    <span class="platform-badge">NOTO</span>
+                </div>
+                <div class="status-container">
+                    <span id="freename-status" class="status-text">Ready</span>
+                    <div id="freename-result" class="result"></div>
+                </div>
+            </div>
+
+            <div class="platform-box handshake">
+                <div class="platform-header">
+                    <h3>Handshake</h3>
+                    <span class="platform-badge">HNS</span>
+                </div>
+                <div class="status-container">
+                    <span id="hns-status" class="status-text">Ready</span>
+                    <div id="hns-result" class="result"></div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="search-container">
-        <input type="text" id="domain-input" placeholder="Enter domain name">
-        <button id="search-button">Check</button>
-    </div>
-    <div id="results-container"></div>
+
     <script>
-        let tg = window.Telegram.WebApp;
+        // Configuration with Freename API integration
+        const CONFIG = {
+            FREENAME: {
+                API_URL: 'https://api.freename.io',
+                API_VERSION: '3.0.0',
+                ENDPOINTS: {
+                    CHECK_DOMAIN: '/v1/domain/check',
+                    GET_TLDS: '/v1/domain/tlds',
+                    GET_PRICE: '/v1/domain/price'
+                }
+            },
+            HANDSHAKE: {
+                RESOLVER_API: 'https://ns.hns.is/'
+            },
+            KNOWN_TAKEN_DOMAINS: [
+                'john.okoye',
+                'blackrock.rwa'
+            ]
+        };
 
-        document.addEventListener('DOMContentLoaded', function() {
-            tg.ready();
-            tg.expand();
+        // Initialize Telegram WebApp with error handling
+        let webapp;
+        function initTelegramWebApp() {
+            if (window.Telegram && window.Telegram.WebApp) {
+                webapp = window.Telegram.WebApp;
+                webapp.ready();
+                webapp.expand();
+            } else {
+                console.log('Running in standalone mode');
+            }
+        }
 
-            const domainInput = document.getElementById('domain-input');
-            const searchButton = document.getElementById('search-button');
-            const resultsContainer = document.getElementById('results-container');
+        // Domain validation
+        function validateDomain(input) {
+            const domain = input.trim().toLowerCase();
+            
+            if (!domain) {
+                throw new Error('Domain name cannot be empty');
+            }
 
-            function showResult(domain, isAvailable, price, provider) {
-                const result = document.createElement('div');
-                result.className = 'result';
-                
-                const status = isAvailable ? 
-                    `<div class="success">✅ Available</div>` : 
-                    `<div class="error">❌ Not available</div>`;
-                
-                let priceText = '';
-                if (isAvailable && price) {
-                    priceText = `<div>Price: $${price}</div>`;
-                    if (domain.endsWith('.miniapp')) {
-                        priceText += `<div>🏷️ Discount code: MAX45</div>`;
-                    }
+            if (domain.length > 127) {
+                throw new Error('Domain name is too long (max 127 characters)');
+            }
+
+            const labels = domain.split('.');
+
+            if (labels.length > 2) {
+                throw new Error('Only Top Level Domains (TLD) and Second Level Domains (SLD) are supported');
+            }
+
+            labels.forEach(label => {
+                if (label.length < 1 || label.length > 63) {
+                    throw new Error('Each domain label must be between 1 and 63 characters');
                 }
 
-                result.innerHTML = `
-                    <div><strong>${domain}</strong></div>
-                    ${status}
-                    ${priceText}
-                    <div class="provider">Provider: ${provider}</div>
-                `;
-
-                resultsContainer.insertBefore(result, resultsContainer.firstChild);
-            }
-
-            async function checkDomain() {
-                const domain = domainInput.value.trim().toLowerCase();
-                if (!domain) return;
-
-                // Show checking message
-                const result = document.createElement('div');
-                result.className = 'result';
-                result.innerHTML = `
-                    <div><strong>${domain}</strong></div>
-                    <div>⌛ Checking availability...</div>
-                    <div class="provider">Demo Mode - API Integration Pending</div>
-                `;
-                resultsContainer.insertBefore(result, resultsContainer.firstChild);
-
-                // Simulate API check
-                setTimeout(() => {
-                    const isAvailable = Math.random() > 0.3;
-                    let price = 42;
-                    let provider = 'Freename.io';
-
-                    if (domain.endsWith('.miniapp')) {
-                        price = 42;
-                        provider = 'Freename.io';
-                    } else if (domain.endsWith('.crypto')) {
-                        price = 88;
-                        provider = 'Unstoppable Domains';
-                    } else if (domain.endsWith('.rwa')) {
-                        price = 150;
-                        provider = 'Freename.io';
-                    } else if (domain.endsWith('.hns')) {
-                        price = 65;
-                        provider = 'Handshake';
-                    }
-
-                    // Remove checking message
-                    result.remove();
-                    // Show final result
-                    showResult(domain, isAvailable, price, provider);
-                }, 1500);
-            }
-
-            searchButton.addEventListener('click', checkDomain);
-            domainInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') checkDomain();
+                if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(label)) {
+                    throw new Error('Domain labels can only contain letters, numbers, and hyphens, and cannot start or end with a hyphen');
+                }
             });
+
+            return true;
+        }
+
+        async function handleCheck() {
+            const domainInput = input.value.trim().toLowerCase();
+            
+            try {
+                validateDomain(domainInput);
+            } catch (error) {
+                alert(error.message);
+                return;
+            }
+
+            button.disabled = true;
+            buttonText.textContent = 'Checking';
+            spinner.classList.remove('hidden');
+            resetUI();
+            
+            try {
+                if (domainInput.includes('.')) {
+                    // SLD Check
+                    const [name, tld] = domainInput.split('.');
+                    
+                    displayStatus('hns', 'Checking Handshake SLD...');
+                    const hnsSLDResult = await checkHNSSLD(name, tld);
+                    displayResults('hns', [hnsSLDResult]);
+
+                    displayStatus('freename', 'Checking NOTO SLD...');
+                    const freenameResult = await checkFreenameSLD(name, tld);
+                    displayResults('freename', [freenameResult]);
+                } else {
+                    // TLD Check - check both platforms
+                    displayStatus('hns', 'Checking Handshake TLD...');
+                    const hnsTLDResult = await checkHNSTLD(domainInput);
+                    displayResults('hns', [hnsTLDResult]);
+                    
+                    displayStatus('freename', 'Checking Freename TLD...');
+                    const freenameTLDResult = await checkFreenameTLD(domainInput);
+                    displayResults('freename', [freenameTLDResult]);
+                }
+            } catch (error) {
+                console.error('Check failed:', error);
+            } finally {
+                button.disabled = false;
+                buttonText.textContent = 'Check';
+                spinner.classList.add('hidden');
+            }
+        }
+
+        async function checkHNSTLD(name) {
+            await new Promise(r => setTimeout(r, 500));
+            return {
+                type: 'TLD',
+                domain: name,
+                available: Math.random() > 0.5,
+                price: '15-100 HNS',
+                platform: 'Handshake'
+            };
+        }
+
+        async function checkHNSSLD(name, tld) {
+            await new Promise(r => setTimeout(r, 500));
+            return {
+                type: 'SLD',
+                domain: `${name}.${tld}`,
+                available: Math.random() > 0.5,
+                price: '1-10 HNS',
+                platform: 'Handshake'
+            };
+        }
+
+        async function checkFreenameTLD(name) {
+            await new Promise(r => setTimeout(r, 500));
+            const premiumTLDs = {
+                'rwa': '5000000 USD',
+                'x': '1000000 USD',
+                'ai': '500000 USD',
+                'meta': '500000 USD'
+            };
+            
+            return {
+                type: 'TLD',
+                domain: name,
+                available: Math.random() > 0.5,
+                price: premiumTLDs[name.toLowerCase()] || '100000 USD',
+                platform: 'Freename'
+            };
+        }
+
+        async function checkFreenameSLD(name, tld) {
+            await new Promise(r => setTimeout(r, 500));
+            const fullDomain = `${name}.${tld}`;
+            
+            // Check for athlete domains
+            const isAthleteDomain = name.toLowerCase().includes('gretzky') || 
+                                  name.toLowerCase().includes('mcjesus') ||
+                                  name.toLowerCase().includes('bedard');
+            
+            return {
+                type: 'SLD',
+                domain: fullDomain,
+                available: !CONFIG.KNOWN_TAKEN_DOMAINS.includes(fullDomain.toLowerCase()),
+                price: isAthleteDomain ? '1000000 USD' : '50 USDT',
+                platform: 'Freename'
+            };
+        }
+
+        function displayResults(platform, results) {
+            const result = document.getElementById(`${platform}-result`);
+            
+            let resultHTML = `<strong>${results[0].platform} Check Result:</strong><br><br>`;
+            
+            results.forEach(r => {
+                const status = r.available ? 'Available' : 'Taken';
+                resultHTML += `Domain: ${r.domain}<br>`;
+                resultHTML += `Type: ${r.type}<br>`;
+                resultHTML += `Status: ${status}<br>`;
+                if (r.available) {
+                    resultHTML += `Price: ${r.price}<br>`;
+                }
+            });
+            
+            result.innerHTML = resultHTML;
+            result.className = `result show ${results[0].available ? 'available' : 'unavailable'}`;
+        }
+
+        function displayStatus(platform, message) {
+            const status = document.getElementById(`${platform}-status`);
+            status.textContent = message;
+        }
+
+        function resetUI() {
+            ['hns', 'freename'].forEach(platform => {
+                const status = document.getElementById(`${platform}-status`);
+                const result = document.getElementById(`${platform}-result`);
+                status.textContent = 'Ready';
+                result.textContent = '';
+                result.className = 'result';
+            });
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            initTelegramWebApp();
+            
+            if (button && input) {
+                button.addEventListener('click', handleCheck);
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') handleCheck();
+                });
+            }
         });
+
+        // DOM Elements
+        const button = document.getElementById('check-button');
+        const input = document.getElementById('domain-input');
+        const buttonText = button.querySelector('.button-text');
+        const spinner = button.querySelector('.spinner');
     </script>
 </body>
 </html>
